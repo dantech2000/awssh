@@ -3,6 +3,7 @@
 
 """The setup script."""
 
+import os
 from setuptools import setup, find_packages
 from pip.req import parse_requirements
 
@@ -13,9 +14,12 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 
-pkg_reqs_txt = parse_requirements('./requirements.txt', session='hack')
-
-pkg_reqs = [str(ir.req) for ir in pkg_reqs_txt]
+pkg_reqs = [
+            'Click',
+            'boto3',
+            'colorterm',
+            'jmespath'
+        ]
 
 setup_requirements = [
     'pytest-runner',
@@ -24,6 +28,10 @@ setup_requirements = [
 
 test_requirements = [
     'pytest',
+    'Click',
+    'boto3',
+    'colorterm',
+    'jmespath'
     # TODO: put package test requirements here
 ]
 

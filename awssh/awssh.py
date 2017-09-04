@@ -2,8 +2,6 @@
 
 import boto3
 import os
-import sys
-import json
 import jmespath
 
 """Main module."""
@@ -27,10 +25,11 @@ class Awssh(object):
 
         if not Awssh._clients.get(service):
 
-            client = boto3.client(service, region_name=Awssh.get_region()) or False # noqa
+            client = boto3.client(service, region_name=Awssh.get_region()) or False  # noqa
 
             if not client:
-                raise Exception('Could not create service: {0}'.format(service))
+                raise Exception(
+                    'Could not create service: {0}'.format(service))
 
             Awssh._clients.update({service: client})
 
@@ -103,7 +102,7 @@ class Awssh(object):
             servers[k].update({'Eip': tag})
 
         def cmp(x, y):
-            if x['Name']<y['Name']:
+            if x['Name'] < y['Name']:
                 return -1
             return 0
 
@@ -139,4 +138,3 @@ class Awssh(object):
                 ips.append(v['Ip'])
 
         return ips
-

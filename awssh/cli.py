@@ -22,7 +22,7 @@ def ls(region=None):
     awsh = awssh.Awssh(region=region)
     servers = awsh.return_server_list()
 
-    if len(servers)<=0:
+    if len(servers) <= 0:
         click.echo("No ec2 instances found")
         return
 
@@ -31,12 +31,20 @@ def ls(region=None):
     click.echo('-------------------------')
 
     for k, v in enumerate(servers):
-        click.echo('{0} [{1}]: {2}'.format(colored(v['Eip'], 'green'), v['Ip'], v['Name']))
+        click.echo(
+            '{0} [{1}]: {2}'.format(
+                colored(
+                    v['Eip'],
+                    'green'),
+                v['Ip'],
+                v['Name']))
+
 
 @main.command()
 @click.option("--region", "-r",
               help="AWS Region, overrides ENV and shared config")
-@click.option("--exact", "-e", is_flag=True, default=False, help='Disable fuzzy search and return exact Tag[Name] matches')
+@click.option("--exact", "-e", is_flag=True, default=False,
+              help='Disable fuzzy search and return exact Tag[Name] matches')
 @click.argument('name')
 def ips(name, region=None, exact=False):
     awsh = awssh.Awssh(region=region)
@@ -47,9 +55,15 @@ def ips(name, region=None, exact=False):
     for ip in ips:
         click.echo(ip)
 
+
 @main.command(help='SSH Into instances')
 @click.option("--user", "-u", default='ec2-user', help='SSH User')
-@click.option("--tty", "-t", default=False, is_flag=True, help="TTY SSH Option")
+@click.option(
+    "--tty",
+    "-t",
+    default=False,
+    is_flag=True,
+    help="TTY SSH Option")
 @click.option("--region", "-r",
               help="AWS Region, overrides ENV and shared config")
 def ssh(user, tty, region=None):
@@ -65,11 +79,18 @@ def ssh(user, tty, region=None):
     click.echo('-------------------------')
 
     for k, v in enumerate(servers):
-        idx = k+1
+        idx = k + 1
         if idx < 10:
             idx = ' {0}'.format(idx)
 
-        click.echo('{0}) {1} [{2}]: {3}'.format(idx, colored(v['Eip'], 'green'), v['Ip'], v['Name']))
+        click.echo(
+            '{0}) {1} [{2}]: {3}'.format(
+                idx,
+                colored(
+                    v['Eip'],
+                    'green'),
+                v['Ip'],
+                v['Name']))
 
     prompt = 'Select a server to ssh into [1-{0}]'.format(len(servers))
 
@@ -80,16 +101,25 @@ def ssh(user, tty, region=None):
         return
 
     if ans > 0 and ans <= len(servers):
-        server = servers[(ans-1)]
+        server = servers[(ans - 1)]
         if tty:
             tty = "-t"
         else:
             tty = ""
         click.echo("---------------------")
-        click.echo("Server: {0}({1})".format(server['Name'], server['Ip'].strip()))
+        click.echo(
+            "Server: {0}({1})".format(
+                server['Name'],
+                server['Ip'].strip()))
         click.echo("User: {0}".format(user))
         click.echo("---------------------")
-        subprocess.call('ssh {2} {0}@{1}'.format(user, server['Ip'].strip(), tty), shell=True)
+        subprocess.call(
+            'ssh {2} {0}@{1}'.format(
+                user,
+                server['Ip'].strip(),
+                tty),
+            shell=True)
+
 
 if __name__ == "__main__":
     main()
