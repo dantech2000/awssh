@@ -1,2 +1,4 @@
 Click
 boto3
+jmespath
+termcolor
