@@ -50,7 +50,7 @@ setup(
     packages=find_packages(include=['awssh']),
     entry_points={
         'console_scripts': [
-            'awssssh=awssh.cli:main'
+            'awssh=awssh.cli:main'
         ]
     },
     include_package_data=True,
