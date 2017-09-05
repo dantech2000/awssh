@@ -25,7 +25,7 @@ setup_requirements = [
     'pytest-runner',
     'Click',
     'boto3',
-    'colorterm',
+    'termcolor',
     'jmespath'
     # TODO(ibejohn818): put setup requirements (distutils extensions, etc.) here
 ]
@@ -34,7 +34,7 @@ test_requirements = [
     'pytest',
     'Click',
     'boto3',
-    'colorterm',
+    'termcolor',
     'jmespath'
     # TODO: put package test requirements here
 ]
