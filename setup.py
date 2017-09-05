@@ -23,6 +23,10 @@ pkg_reqs = [
 
 setup_requirements = [
     'pytest-runner',
+    'Click',
+    'boto3',
+    'colorterm',
+    'jmespath'
     # TODO(ibejohn818): put setup requirements (distutils extensions, etc.) here
 ]
 
@@ -36,7 +40,7 @@ test_requirements = [
 ]
 
 setup(
-    name='awssh',
+    name='awsshpy',
     version='0.2.0',
     description="SSH Connect to Ec2 instances",
     long_description=readme + '\n\n' + history,
@@ -46,7 +50,7 @@ setup(
     packages=find_packages(include=['awssh']),
     entry_points={
         'console_scripts': [
-            'awssh=awssh.cli:main'
+            'awssssh=awssh.cli:main'
         ]
     },
     include_package_data=True,

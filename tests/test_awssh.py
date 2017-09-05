@@ -68,3 +68,11 @@ def test_awssh_client(monkeypatch):
 
     with pytest.raises(Exception):
         assh.client('false')
+
+def test_return_ec2_servers(monkeypatch):
+
+    awsh = awssh.Awssh()
+
+
+def mock_describe_instances(monkeypatch):
+
