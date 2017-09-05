@@ -40,7 +40,7 @@ test_requirements = [
 ]
 
 setup(
-    name='awsshpy',
+    name='jh-awssh',
     version='0.9.0',
     description="SSH Connect to Ec2 instances",
     long_description=readme + '\n\n' + history,

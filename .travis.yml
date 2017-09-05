@@ -2,6 +2,7 @@
 deploy:
   true:
     python: 2.7
+    python: 3.5
     repo: ibejohn818/awssh
     tags: true
   distributions: sdist bdist_wheel
