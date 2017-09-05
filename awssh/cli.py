@@ -44,8 +44,8 @@ def ls(region=None):
 @click.option("--region", "-r",
               help="AWS Region, overrides ENV and shared config")
 @click.option("--exact", "-e", is_flag=True, default=False,
-              help='Disable fuzzy search and return exact Tag[Name] matches')
-@click.argument('name')
+              help='Disable ffuzzy search and return exact Tag[Name] matches')
+@click.argument('name', default='')
 def ips(name, region=None, exact=False):
     awsh = awssh.Awssh(region=region)
     ips = awsh.list_ips(name, exact=exact)

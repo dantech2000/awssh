@@ -51,7 +51,10 @@ class Awssh(object):
 
         ec2Client = Awssh.client('ec2')
 
-        inst = ec2Client.describe_instances()
+        try:
+            inst = ec2Client.describe_instances()
+        except:
+            exit("Unable to connect to AWS API")
 
         ips = []
 
@@ -78,8 +81,10 @@ class Awssh(object):
         ec2Client = Awssh.client('ec2')
 
         ips = []
-
-        eips = ec2Client.describe_addresses()
+        try:
+            eips = ec2Client.describe_addresses()
+        except:
+            exit("Unable to connect to AWS API")
 
         for ip in eips['Addresses']:
             if 'PublicIp' in ip:

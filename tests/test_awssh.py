@@ -6,6 +6,8 @@
 import pytest
 import os
 import boto3
+import json
+import sys
 
 from click.testing import CliRunner
 
@@ -37,6 +39,7 @@ def test_command_line_interface():
     # assert help_result.exit_code == 0
     # assert '--help' in help_result.output
 
+
 def test_awssh_default_region():
 
     os.environ['AWS_DEFAULT_REGION'] = 'us-test-1'
@@ -52,6 +55,7 @@ def test_awssh_default_region():
     ash = awssh.Awssh()
 
     assert 'us-west-2' in ash.get_region()
+
 
 def test_awssh_client(monkeypatch):
 
@@ -69,10 +73,102 @@ def test_awssh_client(monkeypatch):
     with pytest.raises(Exception):
         assh.client('false')
 
+    monkeypatch.undo()
+    awssh.Awssh._clients = {}
+
+
 def test_return_ec2_servers(monkeypatch):
 
+    mock_describe_instances(monkeypatch)
     awsh = awssh.Awssh()
 
+    servers = awsh.return_ec2_servers()
+
+    servers_json = json.dumps(servers)
+
+    assert '3.3.3.3' in servers_json
+    assert '5.5.5.5' not in servers_json
+
+    monkeypatch.undo()
+    awssh.Awssh._clients = {}
+
+    mock_describe_instances(monkeypatch)
+
+    awsh.return_ec2_servers()
+    print(sys.stdout)
 
 def mock_describe_instances(monkeypatch):
-    pass
+
+    class ec2_mock():
+
+        def __init__(self, name):
+            self.name = name
+
+        def describe_instances(self):
+            return {
+                'Reservations': [
+                        {'Instances': [
+                            {
+                                'State': {'Code': 16},
+                                'Tags': [
+                                    {'Key': 'Name', 'Value': 'server1'},
+                                    {'Key': 'NotName', 'Value': 'Bunk'},
+                                ],
+                                'PublicIpAddress': '0.0.0.0',
+                                'PrivateIpAddress': '1.1.1.1',
+                            },
+                            {
+                                'State': {'Code': 16},
+                                'Tags': [
+                                    {'Key': 'Name', 'Value': 'server2'},
+                                    {'Key': 'NotName', 'Value': 'Bunk'},
+                                ],
+                                'PublicIpAddress': '3.3.3.3',
+                                'PrivateIpAddress': '4.4.4.4',
+                            }
+                        ]
+                    },
+                    {'Instances': [
+                            {
+                                'State': {'Code': 3},
+                                'Tags': [
+                                    {'Key': 'Name', 'Value': 'server3'},
+                                    {'Key': 'NotName', 'Value': 'Bunk'},
+                                ],
+                                'PublicIpAddress': '5.5.5.5',
+                                'PrivateIpAddress': '6.6.6.6',
+                            },
+                            {
+                                'State': {'Code': 16},
+                                'Tags': [
+                                    {'Key': 'Name', 'Value': 'server4'},
+                                    {'Key': 'NotName', 'Value': 'Bunk'},
+                                ],
+                                'PublicIpAddress': '7.7.7.7',
+                                'PrivateIpAddress': '8.8.8.8',
+                            }
+                        ]
+                    }
+                ]
+            }
+
+    def boto_client_mock(service, **kwargs):
+        return ec2_mock(service)
+
+    monkeypatch.setattr(boto3, 'client', boto_client_mock)
+
+def mock_describe_instances_exception(monkeypatch):
+
+    class ec2_mock():
+
+        def __init__(self, name):
+            self.name = name
+
+        def describe_instances(self):
+            raise Exception("Connection Error")
+
+
+    def boto_client_mock(service, **kwargs):
+        return ec2_mock(service)
+
+    monkeypatch.setattr(boto3, 'client', boto_client_mock)
