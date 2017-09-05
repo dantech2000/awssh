@@ -66,9 +66,8 @@ def test_awssh_client(monkeypatch):
 
     monkeypatch.setattr(boto3, 'client', boto_client)
 
-    assh = awssh.Awssh()
 
-    assert 'ec2 us-west-2' in assh.client('ec2')
+    assert 'ec2 us-west-2' in awssh.Awssh.client('ec2')
 
     with pytest.raises(Exception):
         assh.client('false')
@@ -76,8 +75,16 @@ def test_awssh_client(monkeypatch):
     monkeypatch.undo()
     awssh.Awssh._clients = {}
 
+    def boto_client(service, **kwargs):
+        raise Exception("UNABLE TO CONNECT")
 
-def test_return_ec2_servers(monkeypatch):
+    monkeypatch.setattr(boto3, 'client', boto_client)
+
+    with pytest.raises(SystemExit):
+        client = awssh.Awssh.client("ec2")
+
+
+def test_return_ec2_servers_exception(monkeypatch):
 
     mock_describe_instances(monkeypatch)
     awsh = awssh.Awssh()

@@ -25,7 +25,10 @@ class Awssh(object):
 
         if not Awssh._clients.get(service):
 
-            client = boto3.client(service, region_name=Awssh.get_region()) or False  # noqa
+            try:
+                client = boto3.client(service, region_name=Awssh.get_region()) or False  # noqa
+            except:
+                exit("Unable to create AWS API Client: {0}".format(service))
 
             if not client:
                 raise Exception(
