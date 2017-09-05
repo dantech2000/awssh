@@ -3,7 +3,7 @@ AWS SSH Helper
 ==============
 
 
-.. image:: https://img.shields.io/pypi/v/awssh.svg
+.. image:: https://img.shields.io/pypi/v/awsshpy.svg
         :target: https://pypi.python.org/pypi/awsshpy
 
 .. image:: https://img.shields.io/travis/ibejohn818/awssh.svg
