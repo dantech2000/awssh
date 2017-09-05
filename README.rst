@@ -17,6 +17,13 @@ AWS SSH Helper
      :target: https://pyup.io/repos/github/ibejohn818/awssh/
      :alt: Updates
 
+Install
+---------------
+`pip install awsshpy`
+or use sudo on OS X
+`sudo -H pip install awsshpy`
+
+
 SSH Connect to Ec2 instances & list IP for use with **mussh**
 
 Run `$: awssh` to see a list of all commands
