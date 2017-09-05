@@ -75,4 +75,4 @@ def test_return_ec2_servers(monkeypatch):
 
 
 def mock_describe_instances(monkeypatch):
-
+    pass
