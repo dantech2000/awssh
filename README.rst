@@ -19,9 +19,9 @@ AWS SSH Helper
 
 Install
 ---------------
-`pip install jh-awssh`
-or use sudo on OS X
-`sudo -H pip install jh-awssh`
+`pip install jh-awssh`  
+or use sudo on OS X  
+`sudo -H pip install jh-awssh`  
 
 
 SSH Connect to Ec2 instances & list IP for use with **mussh**
