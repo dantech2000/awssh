@@ -4,7 +4,7 @@ AWS SSH Helper
 
 
 .. image:: https://img.shields.io/pypi/v/awssh.svg
-        :target: https://pypi.python.org/pypi/awssh
+        :target: https://pypi.python.org/pypi/awsshpy
 
 .. image:: https://img.shields.io/travis/ibejohn818/awssh.svg
         :target: https://travis-ci.org/ibejohn818/awssh
@@ -17,24 +17,10 @@ AWS SSH Helper
      :target: https://pyup.io/repos/github/ibejohn818/awssh/
      :alt: Updates
 
+SSH Connect to Ec2 instances & list IP for use with **mussh**
 
-SSH Connect to Ec2 instances
+Run `$: awssh` to see a list of all commands
+
 
 
 * Free software: MIT license
-* Documentation: https://awssh.readthedocs.io.
-
-
-Features
---------
-
-* TODO
-
-Credits
----------
-
-This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
-
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
-
