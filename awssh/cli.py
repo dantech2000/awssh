@@ -58,7 +58,8 @@ def ips(name, region=None, exact=False):
 
 
 @main.command(help='SSH Into instances')
-@click.option("--user", "-u", default='ec2-user', help='SSH User')
+@click.option("--user", "-u", default='ec2-user', help='Forward SSH-Agent')
+@click.option("--agent", "-A", is_flag=True, default=False, help='SSH User')
 @click.option(
     "--tty",
     "-t",
@@ -67,7 +68,7 @@ def ips(name, region=None, exact=False):
     help="TTY SSH Option")
 @click.option("--region", "-r",
               help="AWS Region, overrides ENV and shared config")
-def ssh(user, tty, region=None):
+def ssh(user, tty, region=None, agent=False):
     awsh = awssh.Awssh(region=region)
     servers = awsh.return_server_list()
 
@@ -103,10 +104,18 @@ def ssh(user, tty, region=None):
 
     if ans > 0 and ans <= len(servers):
         server = servers[(ans - 1)]
+
         if tty:
             tty = "-t"
         else:
             tty = ""
+
+        # agent forwarding
+        if agent:
+            agent = "-A"
+        else:
+            agent = ''
+
         click.echo("---------------------")
         click.echo(
             "Server: {0}({1})".format(
@@ -115,10 +124,11 @@ def ssh(user, tty, region=None):
         click.echo("User: {0}".format(user))
         click.echo("---------------------")
         subprocess.call(
-            'ssh {2} {0}@{1}'.format(
+            'ssh {2} {3} {0}@{1}'.format(
                 user,
                 server['Ip'].strip(),
-                tty),
+                tty,
+                agent),
             shell=True)
 
 
