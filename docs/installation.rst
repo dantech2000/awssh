@@ -12,7 +12,7 @@ To install AWS SSH Helper, run this command in your terminal:
 
 .. code-block:: console
 
-    $ pip install awsshpy
+    $ pip install jh-awssh
 
 This is the preferred method to install AWS SSH Helper, as it will always install the most recent stable release. 
 
