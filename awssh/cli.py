@@ -40,7 +40,8 @@ def ls(region=None):
                 v['Name']))
 
 
-@main.command(help="List ip's for use with mussh. Fuzzy search enabled by default")
+@main.command(
+    help="List ip's for use with mussh. Fuzzy search enabled by default")
 @click.option("--region", "-r",
               help="AWS Region, overrides ENV and shared config")
 @click.option("--exact", "-e", is_flag=True, default=False,
