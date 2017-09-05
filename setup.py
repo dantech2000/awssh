@@ -17,7 +17,7 @@ with open('HISTORY.rst') as history_file:
 pkg_reqs = [
             'Click',
             'boto3',
-            'colorterm',
+            'termcolor',
             'jmespath'
         ]
 
