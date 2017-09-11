@@ -4,6 +4,22 @@ import boto3
 import os
 import jmespath
 
+""" Exceptions """
+
+""" Boto client error """
+
+
+class AwsClientErr(Exception):
+    pass
+
+
+""" Ec2 service error """
+
+
+class Ec2Err(Exception):
+    pass
+
+
 """Main module."""
 
 
@@ -28,10 +44,10 @@ class Awssh(object):
             try:
                 client = boto3.client(service, region_name=Awssh.get_region()) or False  # noqa
             except:
-                exit("Unable to create AWS API Client: {0}".format(service))
+                raise AwsClientErr("Unable to connect to AWS API: {0}".format(service))
 
             if not client:
-                raise Exception(
+                raise AwsClientErr(
                     'Could not create service: {0}'.format(service))
 
             Awssh._clients.update({service: client})
@@ -53,11 +69,15 @@ class Awssh(object):
     def return_ec2_servers(self, **kwargs):
 
         ec2Client = Awssh.client('ec2')
+        ipPath = 'PublicIpAddress'
+
+        if kwargs.get('privateip'):
+            ipPath = 'PrivateIpAddress'
 
         try:
             inst = ec2Client.describe_instances()
         except:
-            exit("Unable to connect to AWS API")
+            raise
 
         ips = []
 
@@ -70,9 +90,16 @@ class Awssh(object):
             for ii in i['Instances']:
                 if ii['State']['Code'] not in [16]:
                     continue
-                name = (jmespath.search("Tags[?Key=='Name'].Value", ii)[0]
-                        or 'N/A')
-                ip = jmespath.search("PublicIpAddress", ii) or False
+
+                try:
+                    name = jmespath.search("Tags[?Key=='Name'].Value", ii)[0]
+                except:
+                    name = 'N/A'
+
+                try:
+                    ip = jmespath.search(ipPath, ii)
+                except:
+                    ip = False
 
                 if ip:
                     ips.append({'Name': name, 'Ip': ip})

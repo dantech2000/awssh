@@ -4,14 +4,17 @@
 """Tests for `awssh` package."""
 
 import pytest
+import mock
 import os
 import boto3
 import json
 import sys
+import botocore
 
 from click.testing import CliRunner
 
 from awssh import awssh
+
 
 @pytest.fixture
 def response():
@@ -21,6 +24,75 @@ def response():
     """
     # import requests
     # return requests.get('https://github.com/audreyr/cookiecutter-pypackage')
+
+
+@pytest.fixture
+def ec2_describe_success():
+    def mock_api(self, serv, arg, **kwargs):
+        if serv == 'DescribeInstances':
+            return {'Reservations': [
+                {'Instances': [
+                    {
+                        'State': {'Code': 16},
+                        'Tags': [
+                            {'Key': 'Name', 'Value': 'Name1'},
+                            {'Key': 'Bunk', 'Value': 'Ugh'}
+                        ],
+                        'PublicIpAddress': '1.1.1.1',
+                        'PrivateIpAddress': '2.2.2.2'
+                    },
+                    {
+                        'State': {'Code': 16},
+                        'Tags': [
+                            {'Key': 'Name', 'Value': 'Name2'},
+                            {'Key': 'Bunk', 'Value': 'Ugh'}
+                        ],
+                        'PublicIpAddress': '3.3.3.3',
+                        'PrivateIpAddress': '4.4.4.4'
+                    },
+                ]},
+                {'Instances': [
+                    {
+                        'State': {'Code': 3},
+                        'Tags': [
+                            {'Key': 'Name', 'Value': 'Name3'},
+                            {'Key': 'Bunk', 'Value': 'Ugh'}
+                        ],
+                        'PublicIpAddress': '5.5.5.5',
+                        'PrivateIpAddress': '6.6.6.6'
+                    },
+                    {
+                        'State': {'Code': 16},
+                        'Tags': [
+                            {'Key': 'NameNope', 'Value': 'Name4'},
+                            {'Key': 'Bunk', 'Value': 'Ugh'}
+                        ],
+                        'PublicIpAddress': '7.7.7.7',
+                        'PrivateIpAddress': '8.8.8.8'
+                    },
+                ]},
+                {'Instances': [
+                    {
+                        'State': {'Code': 16},
+                        'Tags': [
+                            {'Key': 'Name', 'Value': 'Name5'},
+                            {'Key': 'Bunk', 'Value': 'Ugh'}
+                        ],
+                        'PublicIpAddress': '9.9.9.9',
+                        'PrivateIpAddress': '10.10.10.10'
+                    },
+                    {
+                        'State': {'Code': 16},
+                        'Tags': [
+                            {'Key': 'Name', 'Value': 'NoIp'},
+                            {'Key': 'Bunk', 'Value': 'Ugh'}
+                        ],
+                        'PublicIpAddress': '',
+                        'PrivateIpAddress': ''
+                    },
+                ]},
+            ]}
+    return mock_api
 
 
 def test_content(response):
@@ -57,34 +129,40 @@ def test_awssh_default_region():
     assert 'us-west-2' in ash.get_region()
 
 
-def test_awssh_client(monkeypatch):
+@mock.patch('awssh.awssh.boto3')
+def test_awssh_client_again(my_mock):
 
-    def boto_client(service, **kwargs):
-        if service == 'false':
-            return False
-        return '{0} {1}'.format(service, kwargs['region_name'])
+    awssh.Awssh.client("swf")
+    my_mock.client.assert_called_with("swf", region_name='us-west-2')
 
-    monkeypatch.setattr(boto3, 'client', boto_client)
+    os.environ['AWS_DEFAULT_REGION'] = 'iraq-west-1'
 
+    awssh.Awssh.client("rds")
+    my_mock.client.asset_called_with("rds", region_name='iraq-west-1')
 
-    assert 'ec2 us-west-2' in awssh.Awssh.client('ec2')
+    my_mock.client.return_value = False
+    with pytest.raises(awssh.AwsClientErr):
+        awssh.Awssh.client('sqs')
 
-    with pytest.raises(Exception):
-        assh.client('false')
+    my_mock.client.side_effect = Exception("Test")
 
-    monkeypatch.undo()
+    with pytest.raises(awssh.AwsClientErr):
+        awssh.Awssh.client("sts")
+
     awssh.Awssh._clients = {}
-
-    def boto_client(service, **kwargs):
-        raise Exception("UNABLE TO CONNECT")
-
-    monkeypatch.setattr(boto3, 'client', boto_client)
-
-    with pytest.raises(SystemExit):
-        client = awssh.Awssh.client("ec2")
+    del os.environ['AWS_DEFAULT_REGION']
 
 
-def test_return_ec2_servers_exception(monkeypatch):
+def test_return_ec2_servers(ec2_describe_success):
+
+    with mock.patch('botocore.client.BaseClient._make_api_call', new=ec2_describe_success):
+        a = awssh.Awssh()
+
+        res = a.return_ec2_servers()
+        print(res)
+
+
+def __test_return_ec2_servers(monkeypatch):
 
     mock_describe_instances(monkeypatch)
     awsh = awssh.Awssh()
@@ -94,15 +172,17 @@ def test_return_ec2_servers_exception(monkeypatch):
     servers_json = json.dumps(servers)
 
     assert '3.3.3.3' in servers_json
+    assert '9.9.9.9' in servers_json
     assert '5.5.5.5' not in servers_json
 
     monkeypatch.undo()
     awssh.Awssh._clients = {}
 
-    mock_describe_instances(monkeypatch)
+    # mock_describe_instances_exception(monkeypatch)
 
-    awsh.return_ec2_servers()
-    print(sys.stdout)
+    # awsh.return_ec2_servers()
+    # print(sys.stdout)
+
 
 def mock_describe_instances(monkeypatch):
 
@@ -114,47 +194,67 @@ def mock_describe_instances(monkeypatch):
         def describe_instances(self):
             return {
                 'Reservations': [
-                        {'Instances': [
-                            {
-                                'State': {'Code': 16},
-                                'Tags': [
-                                    {'Key': 'Name', 'Value': 'server1'},
-                                    {'Key': 'NotName', 'Value': 'Bunk'},
-                                ],
-                                'PublicIpAddress': '0.0.0.0',
-                                'PrivateIpAddress': '1.1.1.1',
-                            },
-                            {
-                                'State': {'Code': 16},
-                                'Tags': [
-                                    {'Key': 'Name', 'Value': 'server2'},
-                                    {'Key': 'NotName', 'Value': 'Bunk'},
-                                ],
-                                'PublicIpAddress': '3.3.3.3',
-                                'PrivateIpAddress': '4.4.4.4',
-                            }
-                        ]
+                    {'Instances': [
+                        {
+                            'State': {'Code': 16},
+                            'Tags': [
+                                {'Key': 'Name', 'Value': 'server1'},
+                                {'Key': 'NotName', 'Value': 'Bunk'},
+                            ],
+                            'PublicIpAddress': '0.0.0.0',
+                            'PrivateIpAddress': '1.1.1.1',
+                        },
+                        {
+                            'State': {'Code': 16},
+                            'Tags': [
+                                {'Key': 'Name', 'Value': 'server2'},
+                                {'Key': 'NotName', 'Value': 'Bunk'},
+                            ],
+                            'PublicIpAddress': '3.3.3.3',
+                            'PrivateIpAddress': '4.4.4.4',
+                        }
+                    ]
                     },
                     {'Instances': [
-                            {
-                                'State': {'Code': 3},
-                                'Tags': [
-                                    {'Key': 'Name', 'Value': 'server3'},
-                                    {'Key': 'NotName', 'Value': 'Bunk'},
-                                ],
-                                'PublicIpAddress': '5.5.5.5',
-                                'PrivateIpAddress': '6.6.6.6',
-                            },
-                            {
-                                'State': {'Code': 16},
-                                'Tags': [
-                                    {'Key': 'Name', 'Value': 'server4'},
-                                    {'Key': 'NotName', 'Value': 'Bunk'},
-                                ],
-                                'PublicIpAddress': '7.7.7.7',
-                                'PrivateIpAddress': '8.8.8.8',
-                            }
-                        ]
+                        {
+                            'State': {'Code': 3},
+                            'Tags': [
+                                {'Key': 'Name', 'Value': 'server3'},
+                                {'Key': 'NotName', 'Value': 'Bunk'},
+                            ],
+                            'PublicIpAddress': '5.5.5.5',
+                            'PrivateIpAddress': '6.6.6.6',
+                        },
+                        {
+                            'State': {'Code': 16},
+                            'Tags': [
+                                {'Key': 'Name', 'Value': 'server4'},
+                                {'Key': 'NotName', 'Value': 'Bunk'},
+                            ],
+                            'PublicIpAddress': '7.7.7.7',
+                            'PrivateIpAddress': '8.8.8.8',
+                        }
+                    ]
+                    },
+                    {'Instances': [
+                        {
+                            'State': {'Code': 16},
+                            'Tags': [
+                                {'Key': 'NotName', 'Value': 'Bunk'},
+                            ],
+                            'PublicIpAddress': '9.9.9.9',
+                            'PrivateIpAddress': '10.10.10.10',
+                        },
+                        {
+                            'State': {'Code': 16},
+                            'Tags': [
+                                {'Key': 'Name', 'Value': 'server4'},
+                                {'Key': 'NotName', 'Value': 'Bunk'},
+                            ],
+                            'PublicIpAddress': '11.11.11.11',
+                            'PrivateIpAddress': '12.12.12.12',
+                        }
+                    ]
                     }
                 ]
             }
@@ -163,6 +263,7 @@ def mock_describe_instances(monkeypatch):
         return ec2_mock(service)
 
     monkeypatch.setattr(boto3, 'client', boto_client_mock)
+
 
 def mock_describe_instances_exception(monkeypatch):
 
@@ -173,7 +274,6 @@ def mock_describe_instances_exception(monkeypatch):
 
         def describe_instances(self):
             raise Exception("Connection Error")
-
 
     def boto_client_mock(service, **kwargs):
         return ec2_mock(service)
