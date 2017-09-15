@@ -185,6 +185,8 @@ def scp(local_path, remote_path, user='ec2-user', region=None):
                 server['Name'],
                 server['Ip'].strip()))
         click.echo("User: {0}".format(user))
+        click.echo('Local Path: %s' % click.format_filename(local_path)) # noqa
+        click.echo('Remote Path:{0}'.format(remote_path))
         click.echo("---------------------")
         subprocess.call('scp -r {0} {2}@{3}:{1}'.format(local_path,
                                                         remote_path, user, server['Ip'].strip()), shell=True) # noqa
