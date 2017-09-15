@@ -3,7 +3,6 @@
 """Console script for awssh."""
 
 import click
-import __init__
 import awssh
 import subprocess
 from termcolor import colored
@@ -11,7 +10,7 @@ from termcolor import colored
 
 @click.group(
     help="Helper to SSH into instances and list ips for mussh. Version: {0}".format(  # noqa
-        __init__.__version__))
+        "v0.15.0"))
 def main():
     """ Entry Point """
     pass
