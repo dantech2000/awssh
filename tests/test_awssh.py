@@ -112,45 +112,45 @@ def test_command_line_interface():
     # assert '--help' in help_result.output
 
 
-def test_awssh_default_region():
-
-    os.environ['AWS_DEFAULT_REGION'] = 'us-test-1'
-
-    assert 'us-test-1' in awssh.Awssh.default_region()
-
-    ash = awssh.Awssh(region='us-test-2')
-
-    assert 'us-test-2' in awssh.Awssh.get_region()
-
-    del os.environ['AWS_DEFAULT_REGION']
-
-    ash = awssh.Awssh()
-
-    assert 'us-west-2' in ash.get_region()
-
-
 @mock.patch('awssh.awssh.boto3')
-def test_awssh_client_again(my_mock):
+def test_awssh_client(my_mock):
 
-    awssh.Awssh.client("swf")
+    awh = awssh.Awssh()
+
+    awh.client("swf")
     my_mock.client.assert_called_with("swf", region_name='us-west-2')
 
     os.environ['AWS_DEFAULT_REGION'] = 'iraq-west-1'
 
-    awssh.Awssh.client("rds")
-    my_mock.client.asset_called_with("rds", region_name='iraq-west-1')
-
-    my_mock.client.return_value = False
-    with pytest.raises(awssh.AwsClientErr):
-        awssh.Awssh.client('sqs')
-
-    my_mock.client.side_effect = Exception("Test")
-
-    with pytest.raises(awssh.AwsClientErr):
-        awssh.Awssh.client("sts")
+    awh = awssh.Awssh()
+    awh.client('rds')
+    my_mock.client.assert_called_with("rds", region_name='iraq-west-1')
 
     awssh.Awssh._clients = {}
+    awssh.Awssh._region = None
     del os.environ['AWS_DEFAULT_REGION']
+
+    awssh.Awssh._clients = {}
+    awssh.Awssh._region = None
+    awh = awssh.Awssh(region='us-east-2')
+
+    awh.client('sns')
+    my_mock.client.assert_called_with('sns', region_name='us-east-2')
+
+    my_mock.client.return_value = False
+    with pytest.raises(Exception) as exe:
+        awh.client('sqs')
+    assert "Could not create" in str(exe.value)
+
+
+    my_mock.client.side_effect = Exception("Test")
+    with pytest.raises(Exception) as exe:
+        awh.client("sts")
+    assert "Unable to connect" in str(exe.value)
+
+
+    awssh.Awssh._clients = {}
+    awssh.Awssh._region = None
 
 
 def test_return_ec2_servers(ec2_describe_success):
@@ -159,7 +159,13 @@ def test_return_ec2_servers(ec2_describe_success):
         a = awssh.Awssh()
 
         res = a.return_ec2_servers()
-        print(res)
+
+        test_str = json.dumps(res)
+
+        assert '5.5.5.5' not in test_str
+        assert 'NoIp' not in test_str
+        assert 'Name5' in test_str
+        assert '9.9.9.9' in test_str
 
 
 def __test_return_ec2_servers(monkeypatch):

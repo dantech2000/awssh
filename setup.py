@@ -26,7 +26,7 @@ setup_requirements = [
     'Click',
     'boto3',
     'termcolor',
-    'jmespath'
+    'jmespath',
     # TODO(ibejohn818): put setup requirements (distutils extensions, etc.) here
 ]
 
@@ -35,7 +35,8 @@ test_requirements = [
     'Click',
     'boto3',
     'termcolor',
-    'jmespath'
+    'jmespath',
+    'mock'
     # TODO: put package test requirements here
 ]
 

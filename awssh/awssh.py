@@ -20,6 +20,10 @@ class Ec2Err(Exception):
     pass
 
 
+class Ec2DescribeInstancesErr(Exception):
+    pass
+
+
 """Main module."""
 
 
@@ -44,7 +48,7 @@ class Awssh(object):
             try:
                 client = boto3.client(service, region_name=Awssh.get_region()) or False  # noqa
             except:
-                raise AwsClientErr("Unable to connect to AWS API: {0}".format(service))
+                raise AwsClientErr("Unable to connect to AWS API: {0}".format(service)) # noqa
 
             if not client:
                 raise AwsClientErr(
@@ -77,7 +81,7 @@ class Awssh(object):
         try:
             inst = ec2Client.describe_instances()
         except:
-            raise
+            raise Ec2DescribeInstancesErr("Unable to connect to api")
 
         ips = []
 
