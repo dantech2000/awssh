@@ -36,7 +36,7 @@ class Awssh(object):
     def __init__(self, region=None):
 
         if region:
-            Awssh._region = region
+            Awssh._region = Awssh.parse_incoming_region(region)
         else:
             Awssh._region = Awssh.default_region()
 
@@ -69,6 +69,35 @@ class Awssh(object):
     @staticmethod
     def get_region():
         return Awssh._region
+
+    @staticmethod
+    def alias_regions():
+        ec2 = Awssh.client("ec2")
+        r = ec2.describe_regions()
+        region_names = jmespath.search("Regions[].RegionName", r)
+        regions = []
+        aliases = {}
+
+        for r in region_names:
+            spl = r.split('-')
+            key = '{0}{1}{2}'.format(spl[0][:1], spl[1][:1], spl[2][:1])
+            aliases.update({key:r})
+            regions.append(r)
+
+        return aliases, regions
+
+    @staticmethod
+    def parse_incoming_region(region):
+        regions = Awssh.alias_regions()
+
+        if regions[0].get(region):
+            return regions[0].get(region)
+
+        if region not in regions[1]:
+            return Awssh._default_region
+
+        return region
+
 
     def return_ec2_servers(self, **kwargs):
 
@@ -128,7 +157,7 @@ class Awssh(object):
 
     def return_server_list(self, **kwargs):
 
-        servers = self.return_ec2_servers()
+        servers = self.return_ec2_servers(**kwargs)
         eips = self.return_elastic_ips()
 
         for k, v in enumerate(servers):
@@ -156,7 +185,7 @@ class Awssh(object):
         if kwargs.get('exact'):
             exact = kwargs['exact']
 
-        servers = self.return_ec2_servers()
+        servers = self.return_ec2_servers(**kwargs)
 
         ips = []
 

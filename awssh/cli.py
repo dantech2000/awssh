@@ -19,10 +19,16 @@ def main():
 @main.command(help='List IPS for all instances and mark EIPs')
 @click.option("--region", "-r",
               help="AWS Region, overrides ENV and shared config")
-def ls(region=None):
+@click.option("--private","-p",is_flag=True)
+def ls(region=None, private=False):
+
+    defs = {}
+
+    if private:
+        defs.update({"privateip": True})
 
     awsh = awssh.Awssh(region=region)
-    servers = awsh.return_server_list()
+    servers = awsh.return_server_list(**defs)
 
     if len(servers) <= 0:
         click.echo("No ec2 instances found")
@@ -48,10 +54,18 @@ def ls(region=None):
               help="AWS Region, overrides ENV and shared config")
 @click.option("--exact", "-e", is_flag=True, default=False,
               help='Disable ffuzzy search and return exact Tag[Name] matches')
+@click.option("--private","-p",is_flag=True)
 @click.argument('name', default='')
-def ips(name, region=None, exact=False):
+def ips(name, region=None, exact=False, private=False):
+    defs = {}
+
+    if private:
+        defs.update({"privateip": True})
+
+    defs.update({"exact": exact})
+
     awsh = awssh.Awssh(region=region)
-    ips = awsh.list_ips(name, exact=exact)
+    ips = awsh.list_ips(name, **defs)
     if len(ips) <= 0:
         return
 
@@ -70,9 +84,15 @@ def ips(name, region=None, exact=False):
     help="TTY SSH Option")
 @click.option("--region", "-r",
               help="AWS Region, overrides ENV and shared config")
-def ssh(user, tty, region=None, agent=False):
+@click.option("--private","-p",is_flag=True)
+def ssh(user, tty, region=None, agent=False, private=False):
     awsh = awssh.Awssh(region=region)
-    servers = awsh.return_server_list()
+
+    defs = {
+            'privateip': private
+    }
+
+    servers = awsh.return_server_list(**defs)
 
     if len(servers) <= 0:
         click.echo("No servers available")
@@ -189,6 +209,21 @@ def scp(local_path, remote_path, user='ec2-user', region=None):
         click.echo("---------------------")
         subprocess.call('scp -r {0} {2}@{3}:{1}'.format(local_path,
                                                         remote_path, user, server['Ip'].strip()), shell=True) # noqa
+
+@main.command(help="View region aliases")
+def region_aliases():
+
+    aliases = awssh.Awssh.alias_regions()
+
+    for k, v in aliases.items():
+        click.echo("{0} = {1}".format(k, v))
+
+
+# @main.command()
+# def tester():
+
+    # assh = awssh.Awssh(region='uw2')
+    # print(awssh.Awssh.get_region())
 
 
 if __name__ == "__main__":
