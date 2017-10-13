@@ -36,15 +36,15 @@ class Awssh(object):
     def __init__(self, region=None):
 
         if region:
-            # Awssh._region = Awssh.parse_incoming_region(region)
-            Awssh._region = region
+            self.set_region(region)
+            # Awssh._region = region
         else:
             Awssh._region = Awssh.default_region()
 
-    @staticmethod
-    def client(service):
+    def client(self, service):
 
-        if not Awssh._clients.get(service):
+        client_key = '{0}-{1}'.format(service, Awssh.get_region())
+        if not Awssh._clients.get(client_key):
 
             try:
                 client = boto3.client(service, region_name=Awssh.get_region()) or False  # noqa
@@ -55,9 +55,9 @@ class Awssh(object):
                 raise AwsClientErr(
                     'Could not create service: {0}'.format(service))
 
-            Awssh._clients.update({service: client})
+            Awssh._clients.update({client_key: client})
 
-        return Awssh._clients.get(service)
+        return Awssh._clients.get(client_key)
 
     @staticmethod
     def default_region():
@@ -71,9 +71,21 @@ class Awssh(object):
     def get_region():
         return Awssh._region
 
-    @staticmethod
-    def alias_regions():
-        ec2 = Awssh.client("ec2")
+    def set_region(self, region):
+        regions = self.alias_regions()
+
+        if regions[0].get(region):
+            region = regions[0].get(region)
+
+        if region not in regions[1]:
+            new_region = Awssh._default_region
+        else:
+            new_region = region
+
+        Awssh._region = new_region
+
+    def alias_regions(self):
+        ec2 = self.client("ec2")
         r = ec2.describe_regions()
         region_names = jmespath.search("Regions[].RegionName", r)
         regions = []
@@ -87,22 +99,9 @@ class Awssh(object):
 
         return aliases, regions
 
-    @staticmethod
-    def parse_incoming_region(region):
-        regions = Awssh.alias_regions()
-
-        if regions[0].get(region):
-            return regions[0].get(region)
-
-        if region not in regions[1]:
-            return Awssh._default_region
-
-        return region
-
-
     def return_ec2_servers(self, **kwargs):
 
-        ec2Client = Awssh.client('ec2')
+        ec2Client = self.client('ec2')
         ipPath = 'PublicIpAddress'
 
         if kwargs.get('privateip'):
@@ -142,7 +141,7 @@ class Awssh(object):
 
     def return_elastic_ips(self, **kwargs):
 
-        ec2Client = Awssh.client('ec2')
+        ec2Client = self.client('ec2')
 
         ips = []
         try:

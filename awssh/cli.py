@@ -7,6 +7,10 @@ import awssh
 import subprocess
 from termcolor import colored
 
+REGION_HELP = """AWS Region, Overrides the ENV and shared config. 
+                 Execute 'awssh region_aliases' to see the aliases 
+                available VS typing full region name"""
+
 
 @click.group(
     help="Helper to SSH into instances and list ips for mussh. Version: {0}".format(  # noqa
@@ -19,7 +23,7 @@ def main():
 @main.command(help='List IPS for all instances and mark EIPs')
 @click.option("--region", "-r",
               help="AWS Region, overrides ENV and shared config")
-@click.option("--private","-p",is_flag=True)
+@click.option("--private", "-p", is_flag=True)
 def ls(region=None, private=False):
 
     defs = {}
@@ -50,11 +54,10 @@ def ls(region=None, private=False):
 
 @main.command(
     help="List ip's for use with mussh. Fuzzy search enabled by default")
-@click.option("--region", "-r",
-              help="AWS Region, overrides ENV and shared config")
+@click.option("--region", "-r", help=REGION_HELP)
 @click.option("--exact", "-e", is_flag=True, default=False,
               help='Disable ffuzzy search and return exact Tag[Name] matches')
-@click.option("--private","-p",is_flag=True)
+@click.option("--private", "-p", is_flag=True)
 @click.argument('name', default='')
 def ips(name, region=None, exact=False, private=False):
     defs = {}
@@ -82,14 +85,14 @@ def ips(name, region=None, exact=False, private=False):
     default=False,
     is_flag=True,
     help="TTY SSH Option")
-@click.option("--region", "-r",
-              help="AWS Region, overrides ENV and shared config")
-@click.option("--private","-p",is_flag=True)
+@click.option("--region", "-r", help=REGION_HELP)
+@click.option("--private", "-p", is_flag=True)
 def ssh(user, tty, region=None, agent=False, private=False):
+    ''' SSH Helper '''
     awsh = awssh.Awssh(region=region)
 
     defs = {
-            'privateip': private
+        'privateip': private
     }
 
     servers = awsh.return_server_list(**defs)
@@ -158,8 +161,7 @@ def ssh(user, tty, region=None, agent=False, private=False):
 @click.argument("local_path", type=click.Path(exists=True))  # noqa
 @click.argument("remote_path", type=click.Path(exists=False))  # noqa
 @click.option("--user", "-u", default='ec2-user', help='Forward SSH-Agent')
-@click.option("--region", "-r",
-              help="AWS Region, overrides ENV and shared config")
+@click.option("--region", "-r", help=REGION_HELP)
 def scp(local_path, remote_path, user='ec2-user', region=None):
     awsh = awssh.Awssh(region=region)
 
@@ -204,18 +206,20 @@ def scp(local_path, remote_path, user='ec2-user', region=None):
                 server['Name'],
                 server['Ip'].strip()))
         click.echo("User: {0}".format(user))
-        click.echo('Local Path: %s' % click.format_filename(local_path)) # noqa
+        click.echo('Local Path: %s' % click.format_filename(local_path))  # noqa
         click.echo('Remote Path:{0}'.format(remote_path))
         click.echo("---------------------")
         subprocess.call('scp -r {0} {2}@{3}:{1}'.format(local_path,
-                                                        remote_path, user, server['Ip'].strip()), shell=True) # noqa
+                                                        remote_path, user, server['Ip'].strip()), shell=True)  # noqa
+
 
 @main.command(help="View region aliases")
 def region_aliases():
 
-    aliases = awssh.Awssh.alias_regions()
+    awsh = awssh.Awssh()
+    aliases = awsh.alias_regions()
 
-    for k, v in aliases.items():
+    for k, v in aliases[0].items():
         click.echo("{0} = {1}".format(k, v))
 
 
