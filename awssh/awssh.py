@@ -36,7 +36,8 @@ class Awssh(object):
     def __init__(self, region=None):
 
         if region:
-            Awssh._region = Awssh.parse_incoming_region(region)
+            # Awssh._region = Awssh.parse_incoming_region(region)
+            Awssh._region = region
         else:
             Awssh._region = Awssh.default_region()
 
