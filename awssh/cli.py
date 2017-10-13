@@ -10,7 +10,7 @@ from termcolor import colored
 
 @click.group(
     help="Helper to SSH into instances and list ips for mussh. Version: {0}".format(  # noqa
-        "v0.15.0"))
+        "v0.17.0"))
 def main():
     """ Entry Point """
     pass
