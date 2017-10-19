@@ -27,7 +27,7 @@ def response():
 
 
 @pytest.fixture
-def ec2_describe_success():
+def ec2_api_mock():
     def mock_api(self, serv, arg, **kwargs):
         if serv == 'DescribeInstances':
             return {'Reservations': [
@@ -92,6 +92,46 @@ def ec2_describe_success():
                     },
                 ]},
             ]}
+        if serv == 'DescribeRegions':
+            return {'Regions': [{'Endpoint': 'ec2.ap-south-1.amazonaws.com',
+                                 'RegionName': 'ap-south-1'},
+                                {'Endpoint': 'ec2.eu-west-2.amazonaws.com',
+                                 'RegionName': 'eu-west-2'},
+                                {'Endpoint': 'ec2.eu-west-1.amazonaws.com',
+                                 'RegionName': 'eu-west-1'},
+                                {'Endpoint': 'ec2.ap-northeast-2.amazonaws.com', # noqa
+                                 'RegionName': 'ap-northeast-2'},
+                                {'Endpoint': 'ec2.ap-northeast-1.amazonaws.com', # noqa
+                                 'RegionName': 'ap-northeast-1'},
+                                {'Endpoint': 'ec2.sa-east-1.amazonaws.com',
+                                 'RegionName': 'sa-east-1'},
+                                {'Endpoint': 'ec2.ca-central-1.amazonaws.com',
+                                 'RegionName': 'ca-central-1'},
+                                {'Endpoint': 'ec2.ap-southeast-1.amazonaws.com',  # noqa
+                                 'RegionName': 'ap-southeast-1'},
+                                {'Endpoint': 'ec2.ap-southeast-2.amazonaws.com',  # noqa
+                                 'RegionName': 'ap-southeast-2'},
+                                {'Endpoint': 'ec2.eu-central-1.amazonaws.com',
+                                 'RegionName': 'eu-central-1'},
+                                {'Endpoint': 'ec2.us-east-1.amazonaws.com',
+                                 'RegionName': 'us-east-1'},
+                                {'Endpoint': 'ec2.us-east-2.amazonaws.com',
+                                 'RegionName': 'us-east-2'},
+                                {'Endpoint': 'ec2.us-west-1.amazonaws.com',
+                                 'RegionName': 'us-west-1'},
+                                {'Endpoint': 'ec2.us-west-1.amazonaws.com',
+                                 'RegionName': 'zz-iraq-1'},
+                                {'Endpoint': 'ec2.us-west-2.amazonaws.com',
+                                 'RegionName': 'us-west-2'}],
+                    'ResponseMetadata': {'RetryAttempts': 0,
+                                         'HTTPStatusCode': 200,
+                                         'RequestId': '48139461-f0cf-4fc1-9da6-c55016b31d90',  # noqa
+                                         'HTTPHeaders': {'transfer-encoding': 'chunked',  # noqa
+                                                         'vary': 'Accept-Encoding',  # noqa
+                                                         'server': 'AmazonEC2',
+                                                         'content-type': 'text/xml;charset=UTF-8',  # noqa
+                                                         'date': 'Thu, 19 Oct 2017 05:39:31 GMT'}}} # noqa
+
     return mock_api
 
 
@@ -114,7 +154,7 @@ def test_command_line_interface():
 
 @mock.patch('awssh.awssh.boto3')
 def test_awssh_client(my_mock):
-    return
+
     awh = awssh.Awssh()
 
     awh.client("swf")
@@ -142,20 +182,18 @@ def test_awssh_client(my_mock):
         awh.client('sqs')
     assert "Could not create" in str(exe.value)
 
-
     my_mock.client.side_effect = Exception("Test")
     with pytest.raises(Exception) as exe:
         awh.client("sts")
     assert "Unable to connect" in str(exe.value)
 
-
     awssh.Awssh._clients = {}
     awssh.Awssh._region = None
 
 
-def test_return_ec2_servers(ec2_describe_success):
-    return
-    with mock.patch('botocore.client.BaseClient._make_api_call', new=ec2_describe_success):
+def test_return_ec2_servers(ec2_api_mock):
+
+    with mock.patch('botocore.client.BaseClient._make_api_call', new=ec2_api_mock): # noqa
         a = awssh.Awssh()
 
         res = a.return_ec2_servers()
@@ -168,120 +206,17 @@ def test_return_ec2_servers(ec2_describe_success):
         assert '9.9.9.9' in test_str
 
 
-def __test_return_ec2_servers(monkeypatch):
-    return
-    mock_describe_instances(monkeypatch)
-    awsh = awssh.Awssh()
+def test_set_region(ec2_api_mock):
 
-    servers = awsh.return_ec2_servers()
+    with mock.patch('botocore.client.BaseClient._make_api_call', new=ec2_api_mock): # noqa
 
-    servers_json = json.dumps(servers)
+        a = awssh.Awssh()
 
-    assert '3.3.3.3' in servers_json
-    assert '9.9.9.9' in servers_json
-    assert '5.5.5.5' not in servers_json
+        a.set_region('zi1')
+        assert awssh.Awssh.get_region() == 'zz-iraq-1'
 
-    monkeypatch.undo()
-    awssh.Awssh._clients = {}
+        a.set_region('test-error')
+        assert awssh.Awssh.get_region() == 'us-west-2'
 
-    # mock_describe_instances_exception(monkeypatch)
-
-    # awsh.return_ec2_servers()
-    # print(sys.stdout)
-
-
-def mock_describe_instances(monkeypatch):
-
-    class ec2_mock():
-
-        def __init__(self, name):
-            self.name = name
-
-        def describe_instances(self):
-            return {
-                'Reservations': [
-                    {'Instances': [
-                        {
-                            'State': {'Code': 16},
-                            'Tags': [
-                                {'Key': 'Name', 'Value': 'server1'},
-                                {'Key': 'NotName', 'Value': 'Bunk'},
-                            ],
-                            'PublicIpAddress': '0.0.0.0',
-                            'PrivateIpAddress': '1.1.1.1',
-                        },
-                        {
-                            'State': {'Code': 16},
-                            'Tags': [
-                                {'Key': 'Name', 'Value': 'server2'},
-                                {'Key': 'NotName', 'Value': 'Bunk'},
-                            ],
-                            'PublicIpAddress': '3.3.3.3',
-                            'PrivateIpAddress': '4.4.4.4',
-                        }
-                    ]
-                    },
-                    {'Instances': [
-                        {
-                            'State': {'Code': 3},
-                            'Tags': [
-                                {'Key': 'Name', 'Value': 'server3'},
-                                {'Key': 'NotName', 'Value': 'Bunk'},
-                            ],
-                            'PublicIpAddress': '5.5.5.5',
-                            'PrivateIpAddress': '6.6.6.6',
-                        },
-                        {
-                            'State': {'Code': 16},
-                            'Tags': [
-                                {'Key': 'Name', 'Value': 'server4'},
-                                {'Key': 'NotName', 'Value': 'Bunk'},
-                            ],
-                            'PublicIpAddress': '7.7.7.7',
-                            'PrivateIpAddress': '8.8.8.8',
-                        }
-                    ]
-                    },
-                    {'Instances': [
-                        {
-                            'State': {'Code': 16},
-                            'Tags': [
-                                {'Key': 'NotName', 'Value': 'Bunk'},
-                            ],
-                            'PublicIpAddress': '9.9.9.9',
-                            'PrivateIpAddress': '10.10.10.10',
-                        },
-                        {
-                            'State': {'Code': 16},
-                            'Tags': [
-                                {'Key': 'Name', 'Value': 'server4'},
-                                {'Key': 'NotName', 'Value': 'Bunk'},
-                            ],
-                            'PublicIpAddress': '11.11.11.11',
-                            'PrivateIpAddress': '12.12.12.12',
-                        }
-                    ]
-                    }
-                ]
-            }
-
-    def boto_client_mock(service, **kwargs):
-        return ec2_mock(service)
-
-    monkeypatch.setattr(boto3, 'client', boto_client_mock)
-
-
-def mock_describe_instances_exception(monkeypatch):
-
-    class ec2_mock():
-
-        def __init__(self, name):
-            self.name = name
-
-        def describe_instances(self):
-            raise Exception("Connection Error")
-
-    def boto_client_mock(service, **kwargs):
-        return ec2_mock(service)
-
-    monkeypatch.setattr(boto3, 'client', boto_client_mock)
+        a.set_region('us-east-2')
+        assert awssh.Awssh.get_region() == 'us-east-2'

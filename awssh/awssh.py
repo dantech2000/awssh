@@ -49,7 +49,7 @@ class Awssh(object):
             try:
                 client = boto3.client(service, region_name=Awssh.get_region()) or False  # noqa
             except:
-                raise AwsClientErr("Unable to connect to AWS API: {0}".format(service)) # noqa
+                raise AwsClientErr("Unable to connect to AWS API: {0}".format(service))  # noqa
 
             if not client:
                 raise AwsClientErr(
@@ -72,7 +72,11 @@ class Awssh(object):
         return Awssh._region
 
     def set_region(self, region):
-        regions = self.alias_regions()
+        try:
+            regions = self.alias_regions()
+        except:
+            Awssh._region = region
+            return
 
         if regions[0].get(region):
             region = regions[0].get(region)
@@ -94,7 +98,7 @@ class Awssh(object):
         for r in region_names:
             spl = r.split('-')
             key = '{0}{1}{2}'.format(spl[0][:1], spl[1][:1], spl[2][:1])
-            aliases.update({key:r})
+            aliases.update({key: r})
             regions.append(r)
 
         return aliases, regions

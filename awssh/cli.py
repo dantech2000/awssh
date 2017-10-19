@@ -7,8 +7,8 @@ import awssh
 import subprocess
 from termcolor import colored
 
-REGION_HELP = """AWS Region, Overrides the ENV and shared config. 
-                 Execute 'awssh region_aliases' to see the aliases 
+REGION_HELP = """AWS Region, Overrides the ENV and shared config.
+                 Execute 'awssh region_aliases' to see the aliases
                 available VS typing full region name"""
 
 
