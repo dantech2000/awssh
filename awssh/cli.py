@@ -225,7 +225,7 @@ def bssh(user, region):
         click.echo("Invalid selection")
         return
 
-    server = servers[ans]
+    server = servers[(ans - 1)]
 
     click.echo("---------------------")
     click.echo(
