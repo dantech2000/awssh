@@ -157,10 +157,101 @@ def ssh(user, tty, region=None, agent=False, private=False):
             shell=True)
 
 
+@main.command(help='SSH Connect via Bastion host')
+@click.option("--user", "-u", default='ec2-user', help='The ssh user')
+@click.option("--region", "-r", help=REGION_HELP)
+def bssh(user, region):
+
+    awsh = awssh.Awssh(region=region)
+    servers = awsh.return_server_list()
+
+    if len(servers) <= 0:
+        click.echo("No servers available")
+        return
+
+    click.echo("-----------------------")
+    click.echo('\t{0} = EIP'.format(colored('✓', 'green')))
+    click.echo("-----------------------")
+
+    for k, v in enumerate(servers):
+        idx = k + 1
+        if idx < 10:
+            idx = ' {0}'.format(idx)
+
+        click.echo(
+            '{0}) {1} [{2}]: {3}'.format(
+                idx,
+                colored(
+                    v['Eip'],
+                    'green'),
+                v['Ip'],
+                v['Name']))
+
+    prompt = 'Select the bastion host to proxy thru [1-{0}]'.format(
+        len(servers))
+
+    ans = click.prompt(prompt, type=int)
+
+    if ans <= 0 or ans > len(servers):
+        click.echo("Invalid selection")
+        return
+
+    bastion = servers[(ans - 1)]
+
+    servers = awsh.return_server_list(**{'privateip': True})
+
+    click.echo("-----------------------")
+    click.echo('Private IPs')
+    click.echo("-----------------------")
+
+    for k, v in enumerate(servers):
+        idx = k + 1
+        if idx < 10:
+            idx = ' {0}'.format(idx)
+
+        click.echo(
+            '{0}) {1} [{2}]: {3}'.format(
+                idx,
+                colored(
+                    v['Eip'],
+                    'green'),
+                v['Ip'],
+                v['Name']))
+
+    prompt = 'Select the host to SSH into [1-{0}]'.format(len(servers))
+
+    ans = click.prompt(prompt, type=int)
+
+    if ans <= 0 or ans > len(servers):
+        click.echo("Invalid selection")
+        return
+
+    server = servers[ans]
+
+    click.echo("---------------------")
+    click.echo(
+        "Bastion: {0}({1})".format(
+            bastion['Name'],
+            bastion['Ip'].strip()))
+    click.echo(
+        "Server: {0}({1})".format(
+            server['Name'],
+            server['Ip'].strip()))
+    click.echo("User: {0}".format(user))
+    click.echo("---------------------")
+
+    cmd = "ssh -o ProxyCommand='ssh -W %h:%p {0}@{1}' {0}@{2}".format(
+        user, bastion['Ip'].strip(), server['Ip'].strip())
+
+    subprocess.call(
+        cmd,
+        shell=True)
+
+
 @main.command(help="scp transfer files")
 @click.argument("local_path", type=click.Path(exists=True))  # noqa
 @click.argument("remote_path", type=click.Path(exists=False))  # noqa
-@click.option("--user", "-u", default='ec2-user', help='Forward SSH-Agent')
+@click.option("--user", "-u", default='ec2-user', help='The ssh user')
 @click.option("--region", "-r", help=REGION_HELP)
 def scp(local_path, remote_path, user='ec2-user', region=None):
     awsh = awssh.Awssh(region=region)
