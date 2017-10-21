@@ -13,8 +13,7 @@ REGION_HELP = """AWS Region, Overrides the ENV and shared config.
 
 
 @click.group(
-    help="Helper to SSH into instances and list ips for mussh. Version: {0}".format(  # noqa
-        "v0.17.0"))
+        help="Helper to SSH into instances and list ips for mussh")
 def main():
     """ Entry Point """
     pass
