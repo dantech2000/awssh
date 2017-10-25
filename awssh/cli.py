@@ -77,7 +77,7 @@ def ips(name, region=None, exact=False, private=False):
 
 @main.command(help='SSH Into instances')
 @click.option("--user", "-u", default='ec2-user', help='Forward SSH-Agent')
-@click.option("--agent", "-A", is_flag=True, default=False, help='SSH User')
+@click.option("--agent", "-A", is_flag=True, default=False, help='Forward SSH Agent')
 @click.option(
     "--tty",
     "-t",
@@ -159,7 +159,8 @@ def ssh(user, tty, region=None, agent=False, private=False):
 @main.command(help='SSH Connect via Bastion host')
 @click.option("--user", "-u", default='ec2-user', help='The ssh user')
 @click.option("--region", "-r", help=REGION_HELP)
-def bssh(user, region):
+@click.option("--agent", "-A", is_flag=True, default=False, help='Forward SSH Agent')
+def bssh(user, region, agent):
 
     awsh = awssh.Awssh(region=region)
     servers = awsh.return_server_list()
@@ -239,8 +240,13 @@ def bssh(user, region):
     click.echo("User: {0}".format(user))
     click.echo("---------------------")
 
-    cmd = "ssh -o ProxyCommand='ssh -W %h:%p {0}@{1}' {0}@{2}".format(
-        user, bastion['Ip'].strip(), server['Ip'].strip())
+    agent_flag = ""
+
+    if agent:
+        agent_flag = "-A"
+
+    cmd = "ssh {3} -o ProxyCommand='ssh -W %h:%p {0}@{1}' {0}@{2}".format(
+        user, bastion['Ip'].strip(), server['Ip'].strip(), agent_flag)
 
     subprocess.call(
         cmd,
