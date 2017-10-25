@@ -13,7 +13,7 @@ REGION_HELP = """AWS Region, Overrides the ENV and shared config.
 
 
 @click.group(
-        help="Helper to SSH into instances and list ips for mussh")
+    help="Helper to SSH into instances and list ips for mussh")
 def main():
     """ Entry Point """
     pass
@@ -77,7 +77,12 @@ def ips(name, region=None, exact=False, private=False):
 
 @main.command(help='SSH Into instances')
 @click.option("--user", "-u", default='ec2-user', help='Forward SSH-Agent')
-@click.option("--agent", "-A", is_flag=True, default=False, help='Forward SSH Agent')
+@click.option(
+    "--agent",
+    "-A",
+    is_flag=True,
+    default=False,
+    help='Forward SSH Agent')
 @click.option(
     "--tty",
     "-t",
@@ -159,7 +164,12 @@ def ssh(user, tty, region=None, agent=False, private=False):
 @main.command(help='SSH Connect via Bastion host')
 @click.option("--user", "-u", default='ec2-user', help='The ssh user')
 @click.option("--region", "-r", help=REGION_HELP)
-@click.option("--agent", "-A", is_flag=True, default=False, help='Forward SSH Agent')
+@click.option(
+    "--agent",
+    "-A",
+    is_flag=True,
+    default=False,
+    help='Forward SSH Agent')
 def bssh(user, region, agent):
 
     awsh = awssh.Awssh(region=region)
