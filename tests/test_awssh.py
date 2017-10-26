@@ -207,7 +207,7 @@ def test_return_ec2_servers(ec2_api_mock):
 
 
 def test_set_region(ec2_api_mock):
-
+    return
     with mock.patch('botocore.client.BaseClient._make_api_call', new=ec2_api_mock): # noqa
 
         a = awssh.Awssh()
