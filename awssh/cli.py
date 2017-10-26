@@ -76,7 +76,7 @@ def ips(name, region=None, exact=False, private=False):
 
 
 @main.command(help='SSH Into instances')
-@click.option("--user", "-u", default='ec2-user', help='Forward SSH-Agent')
+@click.option("--user", "-u", default='ec2-user', help='The SSH User')
 @click.option(
     "--agent",
     "-A",
@@ -90,8 +90,9 @@ def ips(name, region=None, exact=False, private=False):
     is_flag=True,
     help="TTY SSH Option")
 @click.option("--region", "-r", help=REGION_HELP)
-@click.option("--private", "-p", is_flag=True)
-def ssh(user, tty, region=None, agent=False, private=False):
+@click.option("--private", "-p", is_flag=True, help='Flag to use private IPs')
+@click.option("--identity", "-i", help='Identity file / SSH Private Key')
+def ssh(user, tty, region=None, agent=False, private=False, identity=''):
     ''' SSH Helper '''
     awsh = awssh.Awssh(region=region)
 
@@ -145,6 +146,9 @@ def ssh(user, tty, region=None, agent=False, private=False):
         else:
             agent = ''
 
+        if len(identity) > 0:
+            identity = '-i {0}'.format(identity)
+
         click.echo("---------------------")
         click.echo(
             "Server: {0}({1})".format(
@@ -152,12 +156,14 @@ def ssh(user, tty, region=None, agent=False, private=False):
                 server['Ip'].strip()))
         click.echo("User: {0}".format(user))
         click.echo("---------------------")
+
         subprocess.call(
-            'ssh {2} {3} {0}@{1}'.format(
+            'ssh {2} {3} {4} {0}@{1}'.format(
                 user,
                 server['Ip'].strip(),
                 tty,
-                agent),
+                agent,
+                identity),
             shell=True)
 
 
@@ -170,7 +176,8 @@ def ssh(user, tty, region=None, agent=False, private=False):
     is_flag=True,
     default=False,
     help='Forward SSH Agent')
-def bssh(user, region, agent):
+@click.option("--identity", "-i", help='Identity file / SSH Private Key')
+def bssh(user, region, agent, identity=''):
 
     awsh = awssh.Awssh(region=region)
     servers = awsh.return_server_list()
@@ -255,8 +262,12 @@ def bssh(user, region, agent):
     if agent:
         agent_flag = "-A"
 
-    cmd = "ssh {3} -o ProxyCommand='ssh -W %h:%p {0}@{1}' {0}@{2}".format(
-        user, bastion['Ip'].strip(), server['Ip'].strip(), agent_flag)
+    if len(identity) > 0:
+        identity = '-i {0}'.format(identity)
+
+    cmd = "ssh {3} {4} -o ProxyCommand='ssh -W %h:%p {0}@{1}' {0}@{2}".format(
+        user, bastion['Ip'].strip(), server['Ip'].strip(), agent_flag,
+        identity)
 
     subprocess.call(
         cmd,

@@ -158,13 +158,13 @@ def test_awssh_client(my_mock):
     awh = awssh.Awssh()
 
     awh.client("swf")
-    my_mock.client.assert_called_with("swf", region_name='us-west-2')
+    my_mock.client.assert_called_with("swf")
 
-    os.environ['AWS_DEFAULT_REGION'] = 'iraq-west-1'
+    os.environ['AWS_DEFAULT_REGION'] = 'us-west-1'
 
     awh = awssh.Awssh()
     awh.client('rds')
-    my_mock.client.assert_called_with("rds", region_name='iraq-west-1')
+    my_mock.client.assert_called_with("rds", region_name='us-west-1')
 
     awssh.Awssh._clients = {}
     awssh.Awssh._region = None

@@ -50,7 +50,7 @@ class Awssh(object):
         region_in = Awssh.get_region()
 
         if region_in:
-            boto_kwargs.update({'region_name': region_id})
+            boto_kwargs.update({'region_name': region_in})
 
         if not Awssh._clients.get(client_key):
 
