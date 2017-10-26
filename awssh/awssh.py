@@ -44,10 +44,18 @@ class Awssh(object):
     def client(self, service):
 
         client_key = '{0}-{1}'.format(service, Awssh.get_region())
+
+        boto_kwargs = {}
+
+        region_in = Awssh.get_region()
+
+        if region_in:
+            boto_kwargs.update({'region_name': region_id})
+
         if not Awssh._clients.get(client_key):
 
             try:
-                client = boto3.client(service, region_name=Awssh.get_region()) or False  # noqa
+                client = boto3.client(service, **boto_kwargs) or False  # noqa
             except:
                 raise AwsClientErr("Unable to connect to AWS API: {0}".format(service))  # noqa
 
@@ -64,8 +72,8 @@ class Awssh(object):
 
         if os.environ.get("AWS_DEFAULT_REGION") is not None:
             return os.environ.get("AWS_DEFAULT_REGION")
-
-        return Awssh._default_region
+        return None
+        # return Awssh._default_region
 
     @staticmethod
     def get_region():
