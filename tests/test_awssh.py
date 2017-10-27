@@ -10,6 +10,7 @@ import boto3
 import json
 import sys
 import botocore
+import moto
 
 from click.testing import CliRunner
 
@@ -152,8 +153,17 @@ def test_command_line_interface():
     # assert '--help' in help_result.output
 
 
+@moto.mock_ec2
+def test_test():
+    ec2 = boto3.client('ec2')
+
+    ec2.run_instances(ImageId='ami-asdf', MinCount=10, MaxCount=10)
+
+    print(ec2.describe_regions())
+
+
 @mock.patch('awssh.awssh.boto3')
-def test_awssh_client(my_mock):
+def _test_awssh_client(my_mock):
 
     awh = awssh.Awssh()
 
@@ -191,7 +201,7 @@ def test_awssh_client(my_mock):
     awssh.Awssh._region = None
 
 
-def test_return_ec2_servers(ec2_api_mock):
+def _test_return_ec2_servers(ec2_api_mock):
 
     with mock.patch('botocore.client.BaseClient._make_api_call', new=ec2_api_mock): # noqa
         a = awssh.Awssh()
@@ -206,7 +216,7 @@ def test_return_ec2_servers(ec2_api_mock):
         assert '9.9.9.9' in test_str
 
 
-def test_set_region(ec2_api_mock):
+def _test_set_region(ec2_api_mock):
     return
     with mock.patch('botocore.client.BaseClient._make_api_call', new=ec2_api_mock): # noqa
 

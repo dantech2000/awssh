@@ -36,7 +36,8 @@ test_requirements = [
     'boto3',
     'termcolor',
     'jmespath',
-    'mock'
+    'mock',
+    'moto'
     # TODO: put package test requirements here
 ]
 
