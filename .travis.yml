@@ -16,3 +16,6 @@ python:
 - 3.5
 - 2.7
 script: tox
+
+after_success:
+   - bash <(curl -s https://codecov.io/bash)
