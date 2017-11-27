@@ -20,4 +20,8 @@ env:
 script: tox
 
 after_success:
-   - bash <(curl -s https://codecov.io/bash)
+  - pip install -r requirements_dev.txt
+  - coverage run --source awssh -m pytest
+  - coverage report -m
+  - coverage xml
+  - bash <(curl -s https://codecov.io/bash)
