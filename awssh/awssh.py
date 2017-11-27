@@ -52,12 +52,11 @@ class Awssh(object):
         if region_in and region_in is not None:
             boto_kwargs.update({'region_name': region_in})
 
-
         if not Awssh._clients.get(client_key):
 
             try:
                 client = boto3.client(service, **boto_kwargs) or False  # noqa
-            except Exception as e: # noqa
+            except Exception as e:  # noqa
                 raise AwsClientErr("Unable to connect to AWS API: {0}".format(service))  # noqa
 
             if not client:
@@ -83,7 +82,7 @@ class Awssh(object):
     def set_region(self, region):
         try:
             regions = self.alias_regions()
-        except Exception as e: # noqa
+        except Exception as e:  # noqa
             Awssh._region = region
             return
 
@@ -122,7 +121,7 @@ class Awssh(object):
 
         try:
             inst = ec2Client.describe_instances()
-        except: # noqa
+        except:  # noqa
             raise Ec2DescribeInstancesErr("Unable to connect to api")
 
         ips = []
@@ -139,12 +138,12 @@ class Awssh(object):
 
                 try:
                     name = jmespath.search("Tags[?Key=='Name'].Value", ii)[0]
-                except: # noqa
+                except:  # noqa
                     name = 'N/A'
 
                 try:
                     ip = jmespath.search(ipPath, ii)
-                except: # noqa
+                except:  # noqa
                     ip = False
 
                 if ip:
@@ -159,7 +158,7 @@ class Awssh(object):
         ips = []
         try:
             eips = ec2Client.describe_addresses()
-        except: # noqa
+        except:  # noqa
             exit("Unable to connect to AWS API")
 
         for ip in eips['Addresses']:
