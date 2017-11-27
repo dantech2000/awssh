@@ -17,6 +17,9 @@ AWS SSH Helper
      :target: https://pyup.io/repos/github/ibejohn818/awssh/
      :alt: Updates
 
+.. image:: https://codecov.io/gh/ibejohn818/awssh/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/ibejohn818/awssh
+
 Install
 ---------------
 |`pip install jh-awssh`
