@@ -92,7 +92,7 @@ def ips(name, region=None, exact=False, private=False):
 @click.option("--region", "-r", help=REGION_HELP)
 @click.option("--private", "-p", is_flag=True, help='Flag to use private IPs')
 @click.option("--identity", "-i", help='Identity file / SSH Private Key')
-def ssh(user, tty, region=None, agent=False, private=False, identity=''):
+def ssh(user, tty, region=None, agent=False, private=False, identity=None):
     ''' SSH Helper '''
     awsh = awssh.Awssh(region=region)
 
@@ -146,7 +146,7 @@ def ssh(user, tty, region=None, agent=False, private=False, identity=''):
         else:
             agent = ''
 
-        if len(identity) > 0:
+        if identity:
             identity = '-i {0}'.format(identity)
 
         click.echo("---------------------")
@@ -177,7 +177,7 @@ def ssh(user, tty, region=None, agent=False, private=False, identity=''):
     default=False,
     help='Forward SSH Agent')
 @click.option("--identity", "-i", help='Identity file / SSH Private Key')
-def bssh(user, region, agent, identity=''):
+def bssh(user, region, agent, identity=None):
 
     awsh = awssh.Awssh(region=region)
     servers = awsh.return_server_list()
@@ -262,7 +262,7 @@ def bssh(user, region, agent, identity=''):
     if agent:
         agent_flag = "-A"
 
-    if len(identity) > 0:
+    if identity:
         identity = '-i {0}'.format(identity)
 
     cmd = "ssh {3} {4} -o ProxyCommand='ssh -W %h:%p {0}@{1}' {0}@{2}".format(
