@@ -148,6 +148,8 @@ def ssh(user, tty, region=None, agent=False, private=False, identity=None):
 
         if identity:
             identity = '-i {0}'.format(identity)
+        else:
+            identity = ''
 
         click.echo("---------------------")
         click.echo(
@@ -264,6 +266,8 @@ def bssh(user, region, agent, identity=None):
 
     if identity:
         identity = '-i {0}'.format(identity)
+    else:
+        identity = ''
 
     cmd = "ssh {3} {4} -o ProxyCommand='ssh -W %h:%p {0}@{1}' {0}@{2}".format(
         user, bastion['Ip'].strip(), server['Ip'].strip(), agent_flag,
